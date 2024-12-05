@@ -3,7 +3,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.db.models import Base, Employer, Job, User, JobApplication
 from app.db.data import employers_data, jobs_data, users_data, applications_data
-from env.main import Session
 from dotenv import load_dotenv
 import os
 
