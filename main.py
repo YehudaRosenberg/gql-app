@@ -2,10 +2,10 @@ from graphene import Schema
 from fastapi import FastAPI
 from starlette_graphene3 import GraphQLApp, make_playground_handler
 from app.db.database import prepare_database, Session
-from app.db.models import Employer, Job
+from app.db.models import Employer, Job, JobApplication
 from app.gql.queries import Query
 from app.gql.mutations import Mutation
-from contextlib import asynccontextmanager
+
 
 schema = Schema(query=Query, mutation=Mutation)
 
@@ -27,6 +27,10 @@ def get_employers():
     session.close()
     return employers
 
+@app.get("/apps")
+def get_applications():
+    with Session() as session:
+        return session.query(JobApplication).count()
 
 @app.get("/jobs")
 def get_jobs():
