@@ -43,7 +43,7 @@ app.mount(
     "/",
     GraphQLApp(
         schema=schema,
-        middleware=[DepthAnalysisMiddleware(max_depth=5)],  # Apply middleware here
+        middleware = [DepthAnalysisMiddleware(max_depth=5, max_aliases=5)],  # Example values
         on_get=make_playground_handler(),
     ),
 )
