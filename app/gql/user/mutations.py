@@ -12,8 +12,7 @@ from app.db.database import Session
 from app.db.models import User, JobApplication, Job # Import Job model for ApplyToJob check
 from app.gql.types import UserObject, JobApplicationObject
 
-# Configure basic logging if not configured elsewhere
-# In a real app, use FastAPI's logging setup or a dedicated logging config
+
 logging.basicConfig(level=logging.INFO)
 
 
@@ -87,22 +86,14 @@ class AddUser(Mutation):
                 session.add(new_user)
                 session.commit()
                 session.refresh(new_user)
-            # --- MODIFIED EXCEPTION HANDLING ---
-            except IntegrityError as e: # Catch DB constraint violations specifically
+            except IntegrityError as e:
                 session.rollback()
-                # Log the detailed error for server-side debugging
                 logging.error(f"Database integrity error adding user {email}: {e}", exc_info=True)
-                # Raise a generic error to the client
-                # You could try and parse e.orig for specific constraint names if needed
-                # but often a generic conflict message is safer.
                 raise GraphQLError("Could not create user due to a data conflict.")
-            except Exception as e: # Catch other unexpected errors during DB operation
+            except Exception as e:
                 session.rollback()
-                # Log the detailed error for server-side debugging
                 logging.error(f"Unexpected error saving user {email} to database: {e}", exc_info=True)
-                # Raise a generic error to the client
                 raise GraphQLError("An internal server error occurred while saving the user.")
-            # --- END MODIFIED HANDLING ---
 
             return AddUser(user=new_user)
 
@@ -172,12 +163,10 @@ class DeleteUser(Mutation):
                 user_to_delete = session.query(User).filter(User.id == user_id).first()
                 if not user_to_delete:
                     raise GraphQLError("User not found")
-
-                # Optional: Add check here to prevent deletion of last admin?
-                # if user_to_delete.role == "admin":
-                #     admin_count = session.query(User).filter(User.role == "admin").count()
-                #     if admin_count <= 1 and user_to_delete.id == requesting_user.id:
-                #          raise GraphQLError("Cannot delete the last admin account.")
+                if user_to_delete.role == "admin":
+                    admin_count = session.query(User).filter(User.role == "admin").count()
+                    if admin_count <= 1 and user_to_delete.id == requesting_user.id:
+                         raise GraphQLError("Cannot delete the last admin account.")
 
                 session.delete(user_to_delete)
                 session.commit()
