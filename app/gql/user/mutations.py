@@ -99,3 +99,50 @@ class ApplyToJob(Mutation):
         return ApplyToJob(job_application=job_application)
 
 
+class DeleteUser(Mutation):
+    """
+    GraphQL Mutation to delete a user.
+    Requires authentication. Allows admins to delete any user,
+    and regular users to delete only their own account.
+    """
+    class Arguments:
+        user_id = Int(required=True) # The ID of the user to delete
+
+    success = Boolean() # Returns true if deletion is successful
+
+    # No specific decorator needed here as logic is conditional
+    def mutate(root, info, user_id):
+        try:
+            # Check who is making the request
+            requesting_user = get_authenticated_user(info.context)
+        except GraphQLError as auth_error:
+            raise auth_error # Re-raise authentication errors
+        except Exception as e:
+            raise GraphQLError(f"Authentication error: {e}")
+
+        # Authorization check: Allow if admin OR if user is deleting themselves
+        if not (requesting_user.role == "admin" or requesting_user.id == user_id):
+            raise GraphQLError("Not authorized to delete this user")
+
+        with Session() as session:
+            try:
+                # Find the user to delete
+                user_to_delete = session.query(User).filter(User.id == user_id).first()
+
+                if not user_to_delete:
+                    raise GraphQLError("User not found")
+
+                # Optional: Add check here to prevent deletion of last admin?
+
+                # Delete the user
+                session.delete(user_to_delete)
+                session.commit()
+
+                return DeleteUser(success=True)
+
+            except GraphQLError as e:
+                session.rollback() # Rollback on known errors (like not found) if commit hasn't happened
+                raise e
+            except Exception as e:
+                session.rollback() # Rollback on unexpected database errors
+                raise GraphQLError(f"Error deleting user from database: {e}")
