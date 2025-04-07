@@ -1,7 +1,4 @@
-# app/gql/mutations.py
-
 from graphene import ObjectType
-# Import all mutation classes
 from app.gql.job.mutations import AddJob, UpdateJob, DeleteJob
 from app.gql.employer.mutations import AddEmployer, UpdateEmployer, DeleteEmployer
 from app.gql.user.mutations import (
@@ -10,11 +7,8 @@ from app.gql.user.mutations import (
 
 
 class Mutation(ObjectType):
-    """
-    Root Mutation type aggregating all mutations for the schema.
-    Access control (authentication/authorization) is handled within
-    each individual mutation's resolver/decorator.
-    """
+    """ Aggregates all mutations for the GraphQL schema. """
+
     # Job Mutations (Requires Admin)
     add_job = AddJob.Field()
     update_job = UpdateJob.Field()
