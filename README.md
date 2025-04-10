@@ -48,7 +48,7 @@ Want to explore the API yourself? Here’s how to get it running locally:
 1.  **Clone the Repository:**
     ```bash
     git clone https://github.com/YehudaRosenberg/gql-app
-    cd gql-app-main 
+    cd gql-app
     ```
 
 2.  **Create & Activate Virtual Environment (Recommended):**
