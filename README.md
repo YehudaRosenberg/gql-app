@@ -1,6 +1,7 @@
-# Building a Secure GraphQL API: A Demo Project
+# Building a Secure GraphQL API
 
-Welcome! This project serves as a practical demonstration and learning exercise focused on **building a secure GraphQL API**. We explore common security considerations and implement robust solutions using a modern Python stack.
+This project is based on the material of the course [*Building GraphQL APIs with Python: Beginner To Pro*](https://www.udemy.com/course/building-graphql-apis-with-python). Except the password hashing and authentication mechanism implemented in the loginUser API, all the security checks were made by me as part of a self learning journey aiming to fortify my security knowledge on GraphQL APIs.
+This app serves as a practical demonstration and learning exercise focused on **building a secure GraphQL API**. We explore common security considerations and implement robust solutions using a modern Python stack.
 
 Whether you're a GraphQL developer looking to harden your APIs or a security engineer exploring best practices in this space, this codebase provides concrete examples.
 
@@ -25,7 +26,12 @@ Security wasn't an afterthought here. Throughout the development reflected in th
 * **Hardened API Endpoints:** Ensuring all data-modifying operations and sensitive queries require appropriate authentication and authorization.
 * **GraphQL Specific Defenses:** Query depth and alias limiting middleware.
 
+\* Although some security tools flag it as a security issue, the introspection is enabled by design as it does not expose any internal API or sensitive data and in the same time improves significantly the user experience to understand all the available APIs.
+
 This project aims to show *how* these pieces fit together in a functional API.
+
+## Reporting Vulnerabilites
+Did you find any vulnerability in this project? I would be more than happy to know about it! Please send me your findings via the Private vulnerability reporting. To do so, please see the `SECURITY.md` file.
 
 ## Running Locally: Step-by-Step Guide
 
@@ -41,8 +47,8 @@ Want to explore the API yourself? Here’s how to get it running locally:
 
 1.  **Clone the Repository:**
     ```bash
-    git clone <your-repository-url> # Replace with your repo URL
-    cd gql-app-main # Or your repository's directory name
+    git clone https://github.com/YehudaRosenberg/gql-app
+    cd gql-app-main 
     ```
 
 2.  **Create & Activate Virtual Environment (Recommended):**
@@ -62,7 +68,7 @@ Want to explore the API yourself? Here’s how to get it running locally:
     ```
 
 4.  **Configure Environment Variables:**
-    * Create a `.env` file in the project root directory (where `main.py` is). You can copy from `.env.example` if one exists (`cp .env.example .env`).
+    * Create a `.env` file in the project root directory (where `main.py` is).
     * Populate the `.env` file with the following required variables:
 
         ```dotenv
@@ -123,21 +129,33 @@ Want to explore the API yourself? Here’s how to get it running locally:
 * **`me: UserObject`**
     * Retrieves the profile of the currently authenticated user.
     * **AuthN:** Yes | **AuthZ:** Any Authenticated User
+
+
 * **`jobs: [JobObject]`**
     * Retrieves a list of all job postings.
     * **AuthN:** Yes | **AuthZ:** Any Authenticated User
+
+
 * **`job(id: Int!): JobObject`**
     * Retrieves a specific job by ID.
     * **AuthN:** Yes | **AuthZ:** Any Authenticated User
+
+
 * **`employers: [EmployerObject]`**
     * Retrieves a list of all employers.
     * **AuthN:** Yes | **AuthZ:** Any Authenticated User
+
+
 * **`employer(id: Int!): EmployerObject`**
     * Retrieves a specific employer by ID.
     * **AuthN:** Yes | **AuthZ:** Any Authenticated User
+
+
 * **`jobApplications: [JobApplicationObject]`**
     * Retrieves job applications (filtered by role).
     * **AuthN:** Yes | **AuthZ:** User (Own data) / Admin (All data)
+
+
 * **`users: [UserObject]`**
     * Retrieves a list of all users.
     * **AuthN:** Yes | **AuthZ:** Admin Only
@@ -147,34 +165,54 @@ Want to explore the API yourself? Here’s how to get it running locally:
 * **`loginUser(email: String!, password: String!): LoginUserPayload`** (Payload: `{token: String}`)
     * Authenticates a user, returns JWT.
     * **AuthN:** No | **AuthZ:** Public
+
+
 * **`addUser(username: String!, email: String!, password: String!, role: String!)`**: `UserObject`
     * Creates a new user. Enforces password policy.
     * **AuthN:** No (for `role='user'`) / Yes (for `role='admin'`)
     * **AuthZ:** Public (for `role='user'`) / Admin Only (for `role='admin'`)
+
+
 * **`updateUser(username: String, email: String, password: String, currentPassword: String): UserObject`**
     * Updates authenticated user's profile. Requires `currentPassword` to change `password`. Enforces password policy. Validates email.
     * **AuthN:** Yes | **AuthZ:** Self Only
+
+
 * **`deleteUser(userId: Int!): DeleteUserPayload`** (Payload: `{success: Boolean}`)
     * Deletes a user account. Prevents deletion of the last admin.
     * **AuthN:** Yes | **AuthZ:** Self or Admin
+
+
 * **`applyToJob(jobId: Int!): JobApplicationObject`**
     * Applies the authenticated user to a specific job.
     * **AuthN:** Yes | **AuthZ:** Self Only
+
+
 * **`addJob(title: String!, description: String!, employerId: Int!): JobObject`**
     * Creates a new job posting.
     * **AuthN:** Yes | **AuthZ:** Admin Only
+
+
 * **`updateJob(jobId: Int!, title: String, description: String, employerId: Int): JobObject`**
     * Updates an existing job posting.
     * **AuthN:** Yes | **AuthZ:** Admin Only
+
+
 * **`deleteJob(id: Int!): DeleteJobPayload`** (Payload: `{success: Boolean}`)
     * Deletes a job posting.
     * **AuthN:** Yes | **AuthZ:** Admin Only
+
+
 * **`addEmployer(name: String!, contactEmail: String!, industry: String!): EmployerObject`**
     * Creates a new employer profile. Validates contact email.
     * **AuthN:** Yes | **AuthZ:** Admin Only
+
+
 * **`updateEmployer(employerId: Int!, name: String, contactEmail: String, industry: String): EmployerObject`**
     * Updates an existing employer profile. Validates contact email if changed.
     * **AuthN:** Yes | **AuthZ:** Admin Only
+
+
 * **`deleteEmployer(id: Int!): DeleteEmployerPayload`** (Payload: `{success: Boolean}`)
     * Deletes an employer profile. Fails if employer has associated jobs.
     * **AuthN:** Yes | **AuthZ:** Admin Only
