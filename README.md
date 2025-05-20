@@ -26,7 +26,7 @@ Security wasn't an afterthought here. Throughout the development reflected in th
 * **Hardened API Endpoints:** Ensuring all data-modifying operations and sensitive queries require appropriate authentication and authorization.
 * **GraphQL Specific Defenses:** Query depth and alias limiting middleware.
 
-\* Although some security tools flag it as a security issue, the introspection is enabled by design as it does not expose any internal API or sensitive data and in the same time improves significantly the user experience to understand all the available APIs.
+\* Although some security tools flag it as a security issue, the introspection is enabled by design as it does not expose any internal API or sensitive data and in the same time improves significantly the user experience to understand all the available APIs. (Note: With the enhanced depth middleware, introspection might require specific configuration to remain accessible, see `main.py` and `app/middleware/depth_analysis.py` for conditional depth limits).
 
 This project aims to show *how* these pieces fit together in a functional API.
 
@@ -47,7 +47,7 @@ Want to explore the API yourself? Here’s how to get it running locally:
 
 1.  **Clone the Repository:**
     ```bash
-    git clone https://github.com/YehudaRosenberg/gql-app
+    git clone [https://github.com/YehudaRosenberg/gql-app](https://github.com/YehudaRosenberg/gql-app)
     cd gql-app
     ```
 
@@ -84,8 +84,10 @@ Want to explore the API yourself? Here’s how to get it running locally:
         ALGORITHM=HS256 # Or another supported algorithm if preferred
         TOKEN_EXPIRATION_TIME_MINUTES=30 # Or your desired token lifetime
 
-        # --- Other potential config ---
-        # Add any other environment-specific settings if needed
+        # --- Application Environment (for middleware settings) ---
+        # Set to "development" for potentially more lenient depth limits for introspection
+        # Set to "production" (or leave unset) for stricter production limits
+        # APP_ENV=development 
         ```
     * **Important:** Ensure the database specified in `DB_URL` exists and is accessible with the provided credentials. For PostgreSQL, you may need to create the database first. The application will create the necessary tables on startup if they don't exist.
 
@@ -97,11 +99,11 @@ Want to explore the API yourself? Here’s how to get it running locally:
     * `--port 8000` specifies the port (change if needed).
 
 6.  **Access the API:**
-    * Open your web browser and navigate to `http://127.0.0.1:8000/`.
+    * Open your web browser and navigate to `http://127.0.0.1:8000/graphql` (or `/` if you configured it at the root).
     * You should see the GraphQL Playground interface, which allows you to interactively explore and run queries/mutations.
 
 7.  **Using the API:**
-    * Use the `loginUser` mutation (see below) in the Playground to get an authentication token.
+    * Use the `loginUser` mutation in the Playground to get an authentication token.
     * For operations requiring authentication, open the "HTTP HEADERS" panel at the bottom left of the Playground and add:
         ```json
         {
@@ -110,9 +112,22 @@ Want to explore the API yourself? Here’s how to get it running locally:
         ```
       (Replace `<YOUR_JWT_TOKEN>` with the actual token obtained from login).
 
+    * **Example: Logging in as a Non-Admin Test User**
+
+      To explore the API with non-admin permissions, a test user can be used (ensure this user is seeded in your database if not already present). You can log in as this user with the following mutation:
+
+        ```graphql
+        mutation {
+          loginUser(email:"normal@test.you", password:"1!Pokm098") {
+            token
+          }
+        }
+        ```
+      Use the token returned by this mutation in the `Authorization` header as described above to access protected non-admin operations.
+
 ## API Endpoint
 
-* **GraphQL Endpoint:** `/` (Accepts POST requests for queries/mutations, GET for Playground)
+* **GraphQL Endpoint:** `/graphql` (or `/` if configured at root) (Accepts POST requests for queries/mutations, GET for Playground)
 
 ## Authentication
 
